@@ -70,7 +70,7 @@ process_numeric <- function(x, name) {
     {
       if (length(x) > 100000) {
         x_dens <- sample(x, 100000)
-        msg <- "*Plot based on a random sample\nof 100,000 observations."
+        msg <- "*Plot based on a random sample\n  of 100,000 observations."
       } else {
         x_dens <- x
         msg <- ""
@@ -97,10 +97,12 @@ process_numeric <- function(x, name) {
   missing_pc <- (is_missing_x / length(x)) * 100
   missing_pc <- missing_pc |> round(2)
 
+  class_x <- class(x) |> paste(collapse = ", ")
+
   len_x <- length(x)
 
   glue::glue("
-  Name: `{name}` <{class(x)}>
+  Name: `{name}` <{class_x}>
 
   head: {head_x}
   tail: {tail_x}
@@ -159,9 +161,10 @@ process_character <- function(x, name) {
   most_common_string <- glue::glue("`{most_common[,1]}`: {most_common[,2]}") |>
     paste(collapse = "\n")
 
+  class_x <- class(x) |> paste(collapse = ", ")
 
   glue::glue("
-  Name: `{name}` <{class(x)}>
+  Name: `{name}` <{class_x}>
 
   head: {head_x}
   tail: {tail_x}
@@ -191,9 +194,9 @@ process_else <- function(x, name) {
   print_contents <- capture.output(print(x))
 
   print_contents <- paste(print_contents, collapse = "\n")
-
+  class_x <- class(x) |> paste(collapse = ", ")
   glue::glue("
-  Name: `{name}` <{class(x)}>
+  Name: `{name}` <{class_x}>
 
   {print_contents}
   {msg}
