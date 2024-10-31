@@ -22,7 +22,7 @@ nvimclip <- function(obj) {
   }) |>
     data.table::rbindlist(ignore.attr = TRUE) |>
     jsonlite::toJSON(pretty = TRUE, escape_unicode = FALSE) |>
-    writeLines("/tmp/rmdclip/menu.json")
+    writeLines("/tmp/nvim-rmdclip/menu.json")
 }
 
 #' process_contents
