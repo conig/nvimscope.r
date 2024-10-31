@@ -185,6 +185,8 @@ process_character <- function(x, name) {
 #' @return Processed content as a string for objects that are not numeric, character, factor, or logical.
 
 process_else <- function(x, name) {
+  len_x <- length(x)
+
   if (length(x) > 40) {
     x <- x[1:40]
     msg <- "..."
@@ -198,7 +200,7 @@ process_else <- function(x, name) {
   glue::glue("
   Name: `{name}` <{class_x}>
 
-  Length: {length(x)}
+  Length: {len_x}
 
   {print_contents}
   {msg}
