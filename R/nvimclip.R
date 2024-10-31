@@ -32,7 +32,6 @@ process_contents <- function(x, name) {
   if (is(x, "numeric")) {
     return(process_numeric(x, name))
   }
-
   if (is(x, "character")) {
     return(process_character(x, name))
   }
@@ -42,7 +41,7 @@ process_contents <- function(x, name) {
   }
 
   if (is(x, "logical")) {
-    return(process_charater(x, name))
+    return(process_character(x, name))
   }
 
   process_else(x, name)
@@ -68,8 +67,8 @@ process_numeric <- function(x, name) {
   density_x <- capture.output(txtplot::txtdensity(x, width = 45)) |>
     paste(collapse = "\n")
 
-  head_x <- head(x) |> capture.output()
-  tail_x <- tail(x) |> capture.output()
+  head_x <- head(x, 5) |> capture.output() |> paste(collapse = "\n")
+  tail_x <- tail(x, 5) |> capture.output() |> paste(collapse = "\n")
   kurtosis_x <- psych::kurtosi(x) |> round(2)
   skewness_x <- psych::skew(x) |> round(2)
 
@@ -116,8 +115,8 @@ process_character <- function(x, name) {
   }
   if (is.null(name)) name <- ""
 
-  head_x <- head(x) |> capture.output()
-  tail_x <- tail(x) |> capture.output()
+  head_x <- head(x, 5) |> capture.output() |> paste(collapse = "\n")
+  tail_x <- tail(x, 5) |> capture.output() |> paste(collapse = "\n")
 
   is_missing_x <- sum(is.na(x))
   missing_pc <- (is_missing_x / length(x)) * 100
