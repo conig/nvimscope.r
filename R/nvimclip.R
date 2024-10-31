@@ -68,9 +68,9 @@ process_numeric <- function(x, name) {
     paste(collapse = ", ")
   density_x <- tryCatch(
     {
-      if (length(x) > 100000) {
-        x_dens <- sample(x, 100000)
-        msg <- "*Plot based on a random sample\n  of 100,000 observations."
+      if (length(x) > 1000000) {
+        x_dens <- sample(x, 1000000)
+        msg <- "*Plot based on a random sample\n  of 1,000,000 observations."
       } else {
         x_dens <- x
         msg <- ""
@@ -187,7 +187,7 @@ process_character <- function(x, name) {
 process_else <- function(x, name) {
   if (length(x) > 40) {
     x <- x[1:40]
-    msg <- ""
+    msg <- "..."
   } else {
     msg <- ""
   }
@@ -197,6 +197,8 @@ process_else <- function(x, name) {
   class_x <- class(x) |> paste(collapse = ", ")
   glue::glue("
   Name: `{name}` <{class_x}>
+
+  Length: {length(x)}
 
   {print_contents}
   {msg}
