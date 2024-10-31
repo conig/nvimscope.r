@@ -5,8 +5,8 @@
 #' @export
 
 nvimclip <- function(objname = "mtcars") {
-  if (!dir.exists("tmp/rmdclip")) {
-    dir.create("tmp/rmdclip", recursive = TRUE)
+  if (!dir.exists("/tmp/rmdclip")) {
+    dir.create("/tmp/rmdclip", recursive = TRUE)
   }
   contents <- as.list(get(objname))
   contents_names <- names(contents)
@@ -18,7 +18,7 @@ nvimclip <- function(objname = "mtcars") {
   }) |>
     data.table::rbindlist() |>
     jsonlite::toJSON(pretty = TRUE, escape_unicode = FALSE) |>
-    writeLines("tmp/rmdclip/menu.json")
+    writeLines("/tmp/rmdclip/menu.json")
 }
 
 #' process_contents
