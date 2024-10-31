@@ -76,7 +76,7 @@ process_numeric <- function(x, name) {
         msg <- ""
       }
 
-      capture.output(txtplot::txtdensity(na.omit(x_dens), width = 45)) |>
+      capture.output(txtplot::txtdensity(na.omit(x_dens), width = 45, height = 19)) |>
         paste(collapse = "\n")
     },
     error = function(e) {
@@ -102,7 +102,12 @@ process_numeric <- function(x, name) {
   len_x <- length(x)
 
   glue::glue("
+
+
+
   Name: `{name}` <{class_x}>
+
+—————————————————————————————————————————————
 
   head: {head_x}
   tail: {tail_x}
@@ -159,12 +164,17 @@ process_character <- function(x, name) {
   }
 
   most_common_string <- glue::glue("`{most_common[,1]}`: {most_common[,2]}") |>
-    paste(collapse = "\n")
+    paste(collapse = "\n  ")
 
   class_x <- class(x) |> paste(collapse = ", ")
 
   glue::glue("
+  
+
+
   Name: `{name}` <{class_x}>
+
+—————————————————————————————————————————————
 
   head: {head_x}
   tail: {tail_x}
@@ -198,7 +208,12 @@ process_else <- function(x, name) {
   print_contents <- paste(print_contents, collapse = "\n")
   class_x <- class(x) |> paste(collapse = ", ")
   glue::glue("
+  
+
+
   Name: `{name}` <{class_x}>
+
+—————————————————————————————————————————————
 
   Length: {len_x}
 
