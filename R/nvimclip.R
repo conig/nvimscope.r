@@ -4,11 +4,11 @@
 #' @return JSON representation of the processed object, copied to the clipboard.
 #' @export
 
-nvimclip <- function(objname = "mtcars") {
+nvimclip <- function(obj) {
   if (!dir.exists("/tmp/rmdclip")) {
     dir.create("/tmp/rmdclip", recursive = TRUE)
   }
-  contents <- as.list(get(objname))
+  contents <- as.list(obj)
   contents_names <- names(contents)
   out <- lapply(seq_along(contents), function(i) {
     name <- contents_names[i]
@@ -205,7 +205,7 @@ process_else <- function(x, name) {
   }
   print_contents <- capture.output(print(x))
 
-  print_contents <- paste(print_contents, collapse = "\n")
+  print_contents <- paste(print_contents, collapse = "\n  ")
   class_x <- class(x) |> paste(collapse = ", ")
   glue::glue("
   
