@@ -2,19 +2,22 @@
 #'
 #' @param objname Name of the object to be processed. Default is "mtcars".
 #' @return JSON representation of the processed object, copied to the clipboard.
+#' @importFrom future.apply future_lapply
 #' @export
 
 nvimclip <- function(obj) {
   if (!dir.exists("/tmp/nvim-rmdclip")) {
     dir.create("/tmp/nvim-rmdclip", recursive = TRUE)
   }
-  contents <- tryCatch({ as.list(obj)},
+  contents <- tryCatch({as.list(obj)},
   error = function(e) {
     writeLines("","/tmp/nvim-rmdclip/error.json")
     stop("Could not find object.")
   })
   contents_names <- names(contents)
-  out <- lapply(seq_along(contents), function(i) {
+  original_plan <- future::plan()
+  future::plan("multicore", workers = 4)
+  out <- future.apply::future_lapply(seq_along(contents), function(i) {
     name <- contents_names[i]
     if (is.null(name)) name <- i
     x <- contents[[i]]
