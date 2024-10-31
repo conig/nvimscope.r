@@ -5,10 +5,14 @@
 #' @export
 
 nvimclip <- function(obj) {
-  if (!dir.exists("/tmp/rmdclip")) {
-    dir.create("/tmp/rmdclip", recursive = TRUE)
+  if (!dir.exists("/tmp/nvim-rmdclip")) {
+    dir.create("/tmp/nvim-rmdclip", recursive = TRUE)
   }
-  contents <- as.list(obj)
+  contents <- tryCatch({ as.list(obj)},
+  error = function(e) {
+    writeLines("","/tmp/nvim-rmdclip/error.json")
+    stop("Could not find object.")
+  })
   contents_names <- names(contents)
   out <- lapply(seq_along(contents), function(i) {
     name <- contents_names[i]
