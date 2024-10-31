@@ -16,7 +16,7 @@ nvimclip <- function(objname = "mtcars") {
     x <- contents[[i]]
     data.frame(name = name, contents = process_contents(x, name))
   }) |>
-    data.table::rbindlist() |>
+    data.table::rbindlist(ignore.attr = TRUE) |>
     jsonlite::toJSON(pretty = TRUE, escape_unicode = FALSE) |>
     writeLines("/tmp/rmdclip/menu.json")
 }
@@ -63,12 +63,33 @@ process_numeric <- function(x, name) {
   sd_x <- sd(x, na.rm = TRUE) |> round(2)
   IQR_x <- IQR(x, na.rm = TRUE) |> round(2)
 
-  range_x <- range(x, na.rm = TRUE) |> paste(collapse = ", ")
-  density_x <- capture.output(txtplot::txtdensity(x, width = 45)) |>
-    paste(collapse = "\n")
+  range_x <- range(x, na.rm = TRUE) |>
+    round(2) |>
+    paste(collapse = ", ")
+  density_x <- tryCatch(
+    {
+      if (length(x) > 100000) {
+        x_dens <- sample(x, 100000)
+        msg <- "*Plot based on a random sample\nof 100,000 observations."
+      } else {
+        x_dens <- x
+        msg <- ""
+      }
 
-  head_x <- head(x, 5) |> capture.output() |> paste(collapse = "\n")
-  tail_x <- tail(x, 5) |> capture.output() |> paste(collapse = "\n")
+      capture.output(txtplot::txtdensity(na.omit(x_dens), width = 45)) |>
+        paste(collapse = "\n")
+    },
+    error = function(e) {
+      return("Could not generate density plot.")
+    }
+  )
+
+  head_x <- head(x, 5) |>
+    capture.output() |>
+    paste(collapse = "\n")
+  tail_x <- tail(x, 5) |>
+    capture.output() |>
+    paste(collapse = "\n")
   kurtosis_x <- psych::kurtosi(x) |> round(2)
   skewness_x <- psych::skew(x) |> round(2)
 
@@ -79,7 +100,7 @@ process_numeric <- function(x, name) {
   len_x <- length(x)
 
   glue::glue("
-  Name: `{name}`
+  Name: `{name}` <{class(x)}>
 
   head: {head_x}
   tail: {tail_x}
@@ -98,6 +119,7 @@ process_numeric <- function(x, name) {
 —————————————————————————————————————————————
 
   {density_x}
+  {msg}
 
              ")
 }
@@ -109,14 +131,17 @@ process_numeric <- function(x, name) {
 #' @return Processed character content as a string.
 
 process_character <- function(x, name) {
-  x <- as.character(x)
   if (length(x) < 2) {
     return(capture.output(print(x)) |> paste(collapse = "\n"))
   }
   if (is.null(name)) name <- ""
 
-  head_x <- head(x, 5) |> capture.output() |> paste(collapse = "\n")
-  tail_x <- tail(x, 5) |> capture.output() |> paste(collapse = "\n")
+  head_x <- head(x, 5) |>
+    capture.output() |>
+    paste(collapse = "\n")
+  tail_x <- tail(x, 5) |>
+    capture.output() |>
+    paste(collapse = "\n")
 
   is_missing_x <- sum(is.na(x))
   missing_pc <- (is_missing_x / length(x)) * 100
@@ -136,7 +161,7 @@ process_character <- function(x, name) {
 
 
   glue::glue("
-  Name: `{name}`
+  Name: `{name}` <{class(x)}>
 
   head: {head_x}
   tail: {tail_x}
@@ -157,11 +182,20 @@ process_character <- function(x, name) {
 #' @return Processed content as a string for objects that are not numeric, character, factor, or logical.
 
 process_else <- function(x, name) {
+  if (length(x) > 40) {
+    x <- x[1:40]
+    msg <- ""
+  } else {
+    msg <- ""
+  }
   print_contents <- capture.output(print(x))
 
-  if (length(print_contents) > 40) {
-    print_contents <- c(print_contents[1:40], "...")
-  }
+  print_contents <- paste(print_contents, collapse = "\n")
 
-  paste(print_contents, collapse = "\n")
+  glue::glue("
+  Name: `{name}` <{class(x)}>
+
+  {print_contents}
+  {msg}
+")
 }
