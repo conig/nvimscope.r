@@ -4,19 +4,32 @@
 #' @return JSON representation of the processed object, copied to the clipboard.
 #' @importFrom future.apply future_lapply
 #' @export
-
 nvimclip <- function(obj) {
   if (!dir.exists("/tmp/nvim-rmdclip")) {
     dir.create("/tmp/nvim-rmdclip", recursive = TRUE)
   }
-  contents <- tryCatch({as.list(obj)},
-  error = function(e) {
-    writeLines("","/tmp/nvim-rmdclip/error.json")
-    stop("Could not find object.")
-  })
+  contents <- tryCatch(
+    {
+      as.list(obj)
+    },
+    error = function(e) {
+      writeLines("", "/tmp/nvim-rmdclip/error.json")
+      stop("Could not find object.")
+    }
+  )
+
+  if (is(obj, "data.frame")) {
+    if (nrow(obj) * ncol(obj) > 1000000) {
+      use_cores <- max(c(future::availableCores() - 10, 1))
+      original_plan <- future::plan()
+      future::plan("multicore", workers = use_cores)
+      use_cores <- TRUE
+    } else {
+      future::plan("sequential")
+      use_cores <- FALSE
+    }
+  }
   contents_names <- names(contents)
-  original_plan <- future::plan()
-  future::plan("multicore", workers = 4)
   out <- future.apply::future_lapply(seq_along(contents), function(i) {
     name <- contents_names[i]
     if (is.null(name)) name <- i
@@ -26,6 +39,9 @@ nvimclip <- function(obj) {
     data.table::rbindlist(ignore.attr = TRUE) |>
     jsonlite::toJSON(pretty = TRUE, escape_unicode = FALSE) |>
     writeLines("/tmp/nvim-rmdclip/menu.json")
+  if (use_cores) {
+    future::plan(original_plan)
+  }
 }
 
 #' process_contents
