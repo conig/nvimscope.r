@@ -18,6 +18,11 @@ nvimclip <- function(obj) {
     }
   )
 
+  if(is.null(obj)){
+    writeLines("", "/tmp/nvim-rmdclip/error.json")
+    stop("Could not find object.")
+  }
+
   if (is(obj, "data.frame")) {
     if (nrow(obj) * ncol(obj) > 1000000) {
       use_cores <- max(c(future::availableCores() - 10, 1))
