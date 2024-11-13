@@ -18,10 +18,12 @@ nvimclip <- function(obj) {
     }
   )
 
-  if(is.null(obj)){
+  if (is.null(obj)) {
     writeLines("", "/tmp/nvim-rmdclip/error.json")
     stop("Could not find object.")
   }
+
+  use_cores <- FALSE
 
   if (is(obj, "data.frame")) {
     if (nrow(obj) * ncol(obj) > 1000000) {
@@ -187,17 +189,21 @@ process_character <- function(x, name) {
   values <- table(x)
   most_common <- data.frame(values)
   most_common <- most_common[order(-most_common$Freq), ]
-  if (nrow(most_common) > 5) {
-    most_common <- most_common[1:5, ]
+  unique_n <- length(unique(x))
+  if (unique_n > 1) {
+    if (nrow(most_common) > 5) {
+      most_common <- most_common[1:5, ]
+    }
+    most_common_string <- glue::glue("`{most_common[,1]}`: {most_common[,2]}") |>
+      paste(collapse = "\n  ")
+  } else {
+    most_common_string <- x[1]
   }
-
-  most_common_string <- glue::glue("`{most_common[,1]}`: {most_common[,2]}") |>
-    paste(collapse = "\n  ")
 
   class_x <- class(x) |> paste(collapse = ", ")
 
   glue::glue("
-  
+
 
 
   Name: `{name}` <{class_x}>
@@ -208,7 +214,7 @@ process_character <- function(x, name) {
   tail: {tail_x}
 
   Observations: {len_x}
-  Unique values: {length(unique(x))}
+  Unique values: {unique_n}
   Missing: {is_missing_x} ({missing_pc}%)
 
   Most common values:
@@ -236,7 +242,7 @@ process_else <- function(x, name) {
   print_contents <- paste(print_contents, collapse = "\n  ")
   class_x <- class(x) |> paste(collapse = ", ")
   glue::glue("
-  
+
 
 
   Name: `{name}` <{class_x}>
