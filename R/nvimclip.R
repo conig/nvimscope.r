@@ -106,14 +106,13 @@ process_numeric <- function(x, name) {
         msg <- ""
       }
 
-      capture.output(txtplot::txtdensity(na.omit(x_dens), width = 45, height = 19)) |>
+      capture.output(txtplot::txtdensity(na.omit(x_dens), width = 35, height = 15)) |>
         paste(collapse = "\n")
     },
     error = function(e) {
       return("Could not generate density plot.")
     }
   )
-
   head_x <- head(x, 5) |>
     capture.output() |>
     paste(collapse = "\n")
