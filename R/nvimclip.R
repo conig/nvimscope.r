@@ -1,6 +1,7 @@
 #' nvimclip
 #'
 #' @param objname Name of the object to be processed. Default is "mtcars".
+#' @param name_fun Function to extract names from the object. Default is names.
 #' @return JSON representation of the processed object, copied to the clipboard.
 #' @importFrom future.apply future_lapply
 #' @export
@@ -10,13 +11,18 @@ nvimclip <- function(obj) {
   }
   contents <- tryCatch(
     {
-      as.list(obj)
+      if (isS4(obj)) {
+        obj <- s4_to_list(obj)
+      } else {
+        obj <- as.list(obj)
+      }
     },
     error = function(e) {
       writeLines("", "/tmp/nvim-rmdclip/error.json")
       stop("Could not find object.")
     }
   )
+
 
   if (is.null(obj)) {
     writeLines("", "/tmp/nvim-rmdclip/error.json")
