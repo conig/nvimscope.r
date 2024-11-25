@@ -50,9 +50,15 @@ nvimclip <- function(obj) {
   contents_names <- names(contents)
   processed_data <- future.apply::future_lapply(seq_along(contents), function(i) {
     name <- contents_names[i]
+    # message(name)
+    if (FALSE) {
+      debug <- TRUE
+    } else {
+      debug <- FALSE
+    }
     if (is.null(name)) name <- i
     x <- contents[[i]]
-    data.frame(name = name, contents = process_contents(x, name))
+    data.frame(name = name, contents = process_contents(x, name, debug = debug))
   }) |>
     data.table::rbindlist(ignore.attr = TRUE)
   # Write processed data to json file
@@ -72,7 +78,7 @@ nvimclip <- function(obj) {
 #' @return Processed content as a string.
 #' @export
 
-process_contents <- function(x, name) {
+process_contents <- function(x, name, debug = FALSE) {
   if (is(x, "numeric")) {
     return(process_numeric(x, name))
   }
@@ -88,7 +94,7 @@ process_contents <- function(x, name) {
     return(process_character(x, name))
   }
 
-  process_else(x, name)
+  suppressMessages(process_else(x, name, debug = debug))
 }
 
 #' process_numeric
@@ -241,8 +247,9 @@ process_character <- function(x, name) {
 #' @param name Name of the object.
 #' @return Processed content as a string for objects that are not numeric, character, factor, or logical.
 
-process_else <- function(x, name) {
+process_else <- function(x, name, debug = FALSE) {
   len_x <- length(x)
+  if (debug) browser()
 
   if (length(x) > 40) {
     x <- x[1:40]
