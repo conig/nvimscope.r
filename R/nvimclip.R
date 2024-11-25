@@ -4,33 +4,37 @@
 #' @param name_fun Function to extract names from the object. Default is names.
 #' @return JSON representation of the processed object, copied to the clipboard.
 #' @importFrom future.apply future_lapply
+#' @example nvimscope.r::nvimclip(mtcars)
 #' @export
 nvimclip <- function(obj) {
   if (!dir.exists("/tmp/nvim-rmdclip")) {
     dir.create("/tmp/nvim-rmdclip", recursive = TRUE)
   }
+  s4 <- isS4(obj)
+  # Attempt to convert target object to a list
   contents <- tryCatch(
     {
-      if (isS4(obj)) {
-        obj <- s4_to_list(obj)
+      if (s4) {
+        s4_to_list(obj)
       } else {
-        obj <- as.list(obj)
+        as.list(obj)
       }
     },
+    # if not possible, record error in json.
     error = function(e) {
       writeLines("", "/tmp/nvim-rmdclip/error.json")
       stop("Could not find object.")
     }
   )
-
-
+  s4 <- ifelse(s4, "true", "false")
+  # is object is null, record error in json.
   if (is.null(obj)) {
     writeLines("", "/tmp/nvim-rmdclip/error.json")
     stop("Could not find object.")
   }
 
   use_cores <- FALSE
-
+  # use multicore for large objects
   if (is(obj, "data.frame")) {
     if (nrow(obj) * ncol(obj) > 1000000) {
       use_cores <- max(c(future::availableCores() - 10, 1))
@@ -42,16 +46,20 @@ nvimclip <- function(obj) {
       use_cores <- FALSE
     }
   }
+  # For each item in the list, process the contents
   contents_names <- names(contents)
-  out <- future.apply::future_lapply(seq_along(contents), function(i) {
+  processed_data <- future.apply::future_lapply(seq_along(contents), function(i) {
     name <- contents_names[i]
     if (is.null(name)) name <- i
     x <- contents[[i]]
     data.frame(name = name, contents = process_contents(x, name))
   }) |>
-    data.table::rbindlist(ignore.attr = TRUE) |>
+    data.table::rbindlist(ignore.attr = TRUE)
+  # Write processed data to json file
+  list(s4 = s4, contents = processed_data) |>
     jsonlite::toJSON(pretty = TRUE, escape_unicode = FALSE) |>
     writeLines("/tmp/nvim-rmdclip/menu.json")
+  # Reset plan to original
   if (use_cores) {
     future::plan(original_plan)
   }
