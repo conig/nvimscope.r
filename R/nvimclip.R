@@ -94,6 +94,10 @@ process_contents <- function(x, name, debug = FALSE) {
     return(process_character(x, name))
   }
 
+  if (is(x, "ggplot")) {
+    return(process_ggplot(x, name))
+  }
+
   suppressMessages(process_else(x, name, debug = debug))
 }
 
@@ -161,12 +165,12 @@ process_numeric <- function(x, name) {
   head: {head_x}
   tail: {tail_x}
 
-  Observations: {len_x}
+  Observations:  {len_x}
   Unique values: {length(unique(x))}
-  Missing: {is_missing_x} ({missing_pc}%)
+  Missing:       {is_missing_x} ({missing_pc}%)
 
-  Range: [{range_x}]
-  Mean: {mean_x} (sd: {sd_x})
+  Range:  [{range_x}]
+  Mean:   {mean_x} (sd: {sd_x})
   Median: {median_x} (IQR: {IQR_x})
 
   Kurtosis: {kurtosis_x}
@@ -208,7 +212,7 @@ process_character <- function(x, name) {
   values <- table(x)
   most_common <- data.frame(values)
   most_common <- most_common[order(-most_common$Freq), ]
-  unique_n <- length(unique(x))
+  unique_n <- length(na.omit(unique(x)))
   if (unique_n > 1) {
     if (nrow(most_common) > 5) {
       most_common <- most_common[1:5, ]
@@ -232,13 +236,40 @@ process_character <- function(x, name) {
   head: {head_x}
   tail: {tail_x}
 
-  Observations: {len_x}
+  Observations:  {len_x}
   Unique values: {unique_n}
-  Missing: {is_missing_x} ({missing_pc}%)
+  Missing:       {is_missing_x} ({missing_pc}%)
 
   Most common values:
   {most_common_string}
              ")
+}
+
+process_ggplot <- function(x, name) {
+  if (is.null(name)) name <- ""
+  class_x <- class(x) |> paste(collapse = ", ")
+  mapping <- capture.output(print(x$mapping)) |>
+    paste(collapse = "\n  ")
+  layers <- capture.output(print(x$layers)) |>
+    paste(collapse = "\n  ")
+
+
+  glue::glue("
+
+
+
+  name: `{name}` <{class_x}>
+
+—————————————————————————————————————————————
+
+  {mapping}
+
+—————————————————————————————————————————————
+
+  Layers:
+
+  {layers}
+")
 }
 
 #' process_else
@@ -265,11 +296,11 @@ process_else <- function(x, name, debug = FALSE) {
 
 
 
-  Name: `{name}` <{class_x}>
+  name: `{name}` <{class_x}>
 
 —————————————————————————————————————————————
 
-  Length: {len_x}
+  length: {len_x}
 
   {print_contents}
   {msg}
