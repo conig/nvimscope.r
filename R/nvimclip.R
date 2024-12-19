@@ -60,7 +60,7 @@ nvimclip <- function(obj) {
     x <- contents[[i]]
     data.frame(name = name, contents = process_contents(x, name, debug = debug))
   }) |>
-    data.table::rbindlist(ignore.attr = TRUE)
+    data.table::rbindlist()
   # Write processed data to json file
   list(s4 = s4, contents = processed_data) |>
     jsonlite::toJSON(pretty = TRUE, escape_unicode = FALSE) |>
