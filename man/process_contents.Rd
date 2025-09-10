@@ -4,7 +4,7 @@
 \alias{process_contents}
 \title{process_contents}
 \usage{
-process_contents(x, name)
+process_contents(x, name, debug = FALSE)
 }
 \arguments{
 \item{x}{Object to be processed.}

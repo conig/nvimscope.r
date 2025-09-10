@@ -4,7 +4,7 @@
 \alias{process_else}
 \title{process_else}
 \usage{
-process_else(x, name)
+process_else(x, name, debug = FALSE)
 }
 \arguments{
 \item{x}{Object to be processed.}

@@ -4,10 +4,12 @@
 \alias{nvimclip}
 \title{nvimclip}
 \usage{
-nvimclip(objname = "mtcars")
+nvimclip(obj)
 }
 \arguments{
 \item{objname}{Name of the object to be processed. Default is "mtcars".}
+
+\item{name_fun}{Function to extract names from the object. Default is names.}
 }
 \value{
 JSON representation of the processed object, copied to the clipboard.

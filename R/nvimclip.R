@@ -57,8 +57,14 @@ nvimclip <- function(obj) {
       debug <- FALSE
     }
     if (is.null(name)) name <- i
+    # Ensure name is always character to avoid rbindlist class clashes
+    name <- as.character(name)
     x <- contents[[i]]
-    data.frame(name = name, contents = process_contents(x, name, debug = debug))
+    data.frame(
+      name = name,
+      contents = as.character(process_contents(x, name, debug = debug)),
+      stringsAsFactors = FALSE
+    )
   }) |>
     data.table::rbindlist()
   # Write processed data to json file
