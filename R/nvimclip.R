@@ -4,7 +4,10 @@
 #' @param name_fun Function to extract names from the object. Default is names.
 #' @return JSON representation of the processed object, copied to the clipboard.
 #'
-#' @example nvimscope.r::nvimclip(mtcars)
+#' @examples
+#' \donttest{
+#'   nvimscope.r::nvimclip(mtcars)
+#' }
 #' @export
 nvimclip <- function(obj) {
   if (!dir.exists("/tmp/nvim-rmdclip")) {
@@ -38,7 +41,9 @@ nvimclip <- function(obj) {
     x <- contents[[idx]]
     name <- if (!is.null(content_names)) content_names[[idx]] else NULL
     debug <- FALSE
-    if (is.null(name)) name <- idx
+    if (is.null(name)) {
+      name <- idx
+    }
     name <- as.character(name)
     data.frame(
       name = name,
@@ -93,7 +98,9 @@ process_numeric <- function(x, name) {
   if (length(x) < 2) {
     return(capture.output(print(x)) |> paste(collapse = "\n"))
   }
-  if (is.null(name)) name <- ""
+  if (is.null(name)) {
+    name <- ""
+  }
   mean_x <- mean(x, na.rm = TRUE) |> round(2)
   median_x <- median(x, na.rm = TRUE) |> round(2)
   sd_x <- sd(x, na.rm = TRUE) |> round(2)
@@ -112,7 +119,11 @@ process_numeric <- function(x, name) {
         msg <- ""
       }
 
-      capture.output(txtplot::txtdensity(na.omit(x_dens), width = 35, height = 15)) |>
+      capture.output(txtplot::txtdensity(
+        na.omit(x_dens),
+        width = 35,
+        height = 15
+      )) |>
         paste(collapse = "\n")
     },
     error = function(e) {
@@ -136,7 +147,8 @@ process_numeric <- function(x, name) {
 
   len_x <- length(x)
 
-  glue::glue("
+  glue::glue(
+    "
 
 
 
@@ -163,7 +175,8 @@ process_numeric <- function(x, name) {
   {density_x}
   {msg}
 
-             ")
+             "
+  )
 }
 
 #' process_character
@@ -176,7 +189,9 @@ process_character <- function(x, name) {
   if (length(x) < 2) {
     return(capture.output(print(x)) |> paste(collapse = "\n"))
   }
-  if (is.null(name)) name <- ""
+  if (is.null(name)) {
+    name <- ""
+  }
 
   head_x <- head(x, 5) |>
     capture.output() |>
@@ -199,7 +214,9 @@ process_character <- function(x, name) {
     if (nrow(most_common) > 5) {
       most_common <- most_common[1:5, ]
     }
-    most_common_string <- glue::glue("`{most_common[,1]}`: {most_common[,2]}") |>
+    most_common_string <- glue::glue(
+      "`{most_common[,1]}`: {most_common[,2]}"
+    ) |>
       paste(collapse = "\n  ")
   } else {
     most_common_string <- x[1]
@@ -207,7 +224,8 @@ process_character <- function(x, name) {
 
   class_x <- class(x) |> paste(collapse = ", ")
 
-  glue::glue("
+  glue::glue(
+    "
 
 
 
@@ -224,19 +242,22 @@ process_character <- function(x, name) {
 
   Most common values:
   {most_common_string}
-             ")
+             "
+  )
 }
 
 process_ggplot <- function(x, name) {
-  if (is.null(name)) name <- ""
+  if (is.null(name)) {
+    name <- ""
+  }
   class_x <- class(x) |> paste(collapse = ", ")
   mapping <- capture.output(print(x$mapping)) |>
     paste(collapse = "\n  ")
   layers <- capture.output(print(x$layers)) |>
     paste(collapse = "\n  ")
 
-
-  glue::glue("
+  glue::glue(
+    "
 
 
 
@@ -251,7 +272,8 @@ process_ggplot <- function(x, name) {
   Layers:
 
   {layers}
-")
+"
+  )
 }
 
 #' process_else
@@ -262,7 +284,9 @@ process_ggplot <- function(x, name) {
 
 process_else <- function(x, name, debug = FALSE) {
   len_x <- length(x)
-  if (debug) browser()
+  if (debug) {
+    browser()
+  }
 
   if (length(x) > 40) {
     x <- x[1:40]
@@ -274,7 +298,8 @@ process_else <- function(x, name, debug = FALSE) {
 
   print_contents <- paste(print_contents, collapse = "\n  ")
   class_x <- class(x) |> paste(collapse = ", ")
-  glue::glue("
+  glue::glue(
+    "
 
 
 
@@ -286,5 +311,6 @@ process_else <- function(x, name, debug = FALSE) {
 
   {print_contents}
   {msg}
-")
+"
+  )
 }

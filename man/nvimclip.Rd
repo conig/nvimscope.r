@@ -17,3 +17,8 @@ JSON representation of the processed object, copied to the clipboard.
 \description{
 nvimclip
 }
+\examples{
+\donttest{
+  nvimscope.r::nvimclip(mtcars)
+}
+}
