@@ -3,7 +3,7 @@
 #' @param objname Name of the object to be processed. Default is "mtcars".
 #' @param name_fun Function to extract names from the object. Default is names.
 #' @return JSON representation of the processed object, copied to the clipboard.
-#' @importFrom future.apply future_lapply
+#'
 #' @example nvimscope.r::nvimclip(mtcars)
 #' @export
 nvimclip <- function(obj) {
@@ -33,33 +33,13 @@ nvimclip <- function(obj) {
     stop("Could not find object.")
   }
 
-  use_cores <- FALSE
-  # use multicore for large objects
-  if (is(obj, "data.frame")) {
-    if (nrow(obj) * ncol(obj) > 1000000) {
-      use_cores <- max(c(future::availableCores() - 10, 1))
-      original_plan <- future::plan()
-      future::plan("multicore", workers = use_cores)
-      use_cores <- TRUE
-    } else {
-      future::plan("sequential")
-      use_cores <- FALSE
-    }
-  }
-  # For each item in the list, process the contents
-  contents_names <- names(contents)
-  processed_data <- future.apply::future_lapply(seq_along(contents), function(i) {
-    name <- contents_names[i]
-    # message(name)
-    if (FALSE) {
-      debug <- TRUE
-    } else {
-      debug <- FALSE
-    }
-    if (is.null(name)) name <- i
-    # Ensure name is always character to avoid rbindlist class clashes
+  content_names <- names(contents)
+  processed_data <- lapply(seq_along(contents), function(idx) {
+    x <- contents[[idx]]
+    name <- if (!is.null(content_names)) content_names[[idx]] else NULL
+    debug <- FALSE
+    if (is.null(name)) name <- idx
     name <- as.character(name)
-    x <- contents[[i]]
     data.frame(
       name = name,
       contents = as.character(process_contents(x, name, debug = debug)),
@@ -71,10 +51,6 @@ nvimclip <- function(obj) {
   list(s4 = s4, contents = processed_data) |>
     jsonlite::toJSON(pretty = TRUE, escape_unicode = FALSE) |>
     writeLines("/tmp/nvim-rmdclip/menu.json")
-  # Reset plan to original
-  if (use_cores) {
-    future::plan(original_plan)
-  }
 }
 
 #' process_contents

@@ -2,4 +2,3 @@
 
 export(nvimclip)
 export(process_contents)
-importFrom(future.apply,future_lapply)

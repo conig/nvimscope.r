@@ -13,7 +13,6 @@ Imports:
   psych,
   data.table,
   jsonlite,
-  future.apply,
   clipr
 Suggests:
   testthat (>= 3.0.0)
