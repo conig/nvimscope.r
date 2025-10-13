@@ -17,8 +17,10 @@ nvimclip <- function(obj) {
   isSampled <- FALSE
   if (is.data.frame(obj)) {
     if (nrow(obj) > 1e6) {
+      original_nrow <- nrow(obj)
       obj <- obj[sample(nrow(obj), 1e5), ]
       isSampled <- TRUE
+      attr(isSampled, "original_nrow") <- original_nrow
     }
   }
   # Attempt to convert target object to a list
@@ -78,7 +80,14 @@ nvimclip <- function(obj) {
 #' @export
 
 process_contents <- function(x, name, debug = FALSE, isSampled = FALSE) {
-  sample_string <- ifelse(isSampled, "(sampled)", "")
+  sample_string <- ifelse(
+    isSampled,
+    glue::glue(
+      "(sampled for speed, actual obs: {attr(isSampled, 'original_nrow')}"
+    ),
+    ""
+  )
+
   if (is(x, "numeric")) {
     return(process_numeric(x, name, sample_string))
   }
