@@ -54,7 +54,12 @@ nvimclip <- function(obj) {
     name <- as.character(name)
     data.frame(
       name = name,
-      contents = as.character(process_contents(x, name, debug = debug)),
+      contents = as.character(process_contents(
+        x,
+        name,
+        debug = debug,
+        isSampled = isSampled
+      )),
       stringsAsFactors = FALSE
     )
   }) |>
@@ -72,36 +77,38 @@ nvimclip <- function(obj) {
 #' @return Processed content as a string.
 #' @export
 
-process_contents <- function(x, name, debug = FALSE) {
+process_contents <- function(x, name, debug = FALSE, isSampled = FALSE) {
+  sample_string <- ifelse(isSampled, "(sampled)", "")
   if (is(x, "numeric")) {
-    return(process_numeric(x, name))
+    return(process_numeric(x, name, sample_string))
   }
   if (is(x, "character")) {
-    return(process_character(x, name))
+    return(process_character(x, name, sample_string))
   }
 
   if (is(x, "factor")) {
-    return(process_character(x, name))
+    return(process_character(x, name, sample_string))
   }
 
   if (is(x, "logical")) {
-    return(process_character(x, name))
+    return(process_character(x, name, sample_string))
   }
 
   if (is(x, "ggplot")) {
     return(process_ggplot(x, name))
   }
 
-  suppressMessages(process_else(x, name, debug = debug))
+  suppressMessages(process_else(x, name, debug = debug, sample_string))
 }
 
 #' process_numeric
 #'
 #' @param x Numeric object to be processed.
 #' @param name Name of the object.
+# @param sample_string Logical indicating if the data was sampled.
 #' @return Processed numeric content as a string.
 
-process_numeric <- function(x, name) {
+process_numeric <- function(x, name, sample_string) {
   if (length(x) < 2) {
     return(capture.output(print(x)) |> paste(collapse = "\n"))
   }
@@ -153,7 +160,6 @@ process_numeric <- function(x, name) {
   class_x <- class(x) |> paste(collapse = ", ")
 
   len_x <- length(x)
-  sample_print <- ifelse(isSampled, "(sampled)", "")
 
   glue::glue(
     "
@@ -167,7 +173,7 @@ process_numeric <- function(x, name) {
   head: {head_x}
   tail: {tail_x}
 
-  Observations:  {len_x} {sample_print}
+  Observations:  {len_x} {sample_string}
   Unique values: {length(unique(x))}
   Missing:       {is_missing_x} ({missing_pc}%)
 
@@ -193,7 +199,7 @@ process_numeric <- function(x, name) {
 #' @param name Name of the object.
 #' @return Processed character content as a string.
 
-process_character <- function(x, name) {
+process_character <- function(x, name, sample_string) {
   if (length(x) < 2) {
     return(capture.output(print(x)) |> paste(collapse = "\n"))
   }
@@ -244,7 +250,7 @@ process_character <- function(x, name) {
   head: {head_x}
   tail: {tail_x}
 
-  Observations:  {len_x}
+  Observations:  {len_x} {sample_string}
   Unique values: {unique_n}
   Missing:       {is_missing_x} ({missing_pc}%)
 
@@ -290,7 +296,7 @@ process_ggplot <- function(x, name) {
 #' @param name Name of the object.
 #' @return Processed content as a string for objects that are not numeric, character, factor, or logical.
 
-process_else <- function(x, name, debug = FALSE) {
+process_else <- function(x, name, debug = FALSE, sample_string) {
   len_x <- length(x)
   if (debug) {
     browser()
@@ -315,7 +321,7 @@ process_else <- function(x, name, debug = FALSE) {
 
 —————————————————————————————————————————————
 
-  length: {len_x}
+  length: {len_x} {sample_string}
 
   {print_contents}
   {msg}
