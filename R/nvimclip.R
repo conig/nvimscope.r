@@ -14,6 +14,13 @@ nvimclip <- function(obj) {
     dir.create("/tmp/nvim-rmdclip", recursive = TRUE)
   }
   s4 <- isS4(obj)
+  isSampled <- FALSE
+  if (is.data.frame(obj)) {
+    if (nrow(obj) > 1e6) {
+      obj <- obj[sample(nrow(obj), 1e5), ]
+      isSampled <- TRUE
+    }
+  }
   # Attempt to convert target object to a list
   contents <- tryCatch(
     {
@@ -146,6 +153,7 @@ process_numeric <- function(x, name) {
   class_x <- class(x) |> paste(collapse = ", ")
 
   len_x <- length(x)
+  sample_print <- ifelse(isSampled, "(sampled)", "")
 
   glue::glue(
     "
@@ -159,7 +167,7 @@ process_numeric <- function(x, name) {
   head: {head_x}
   tail: {tail_x}
 
-  Observations:  {len_x}
+  Observations:  {len_x} {sample_print}
   Unique values: {length(unique(x))}
   Missing:       {is_missing_x} ({missing_pc}%)
 
